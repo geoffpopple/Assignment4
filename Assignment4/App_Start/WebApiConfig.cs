@@ -15,9 +15,25 @@ namespace Assignment4
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
+                name: "IndividualPlayer",
+                routeTemplate: "api/{controller}/{Registration_id}",
+                defaults: new { Registration_id = RouteParameter.Optional});
+
+            config.Routes.MapHttpRoute(
+                name: "AllPlayersNameSearch",
+                routeTemplate: "api/{controller}/{field}/{search}",
+                defaults: new
+                {
+                    field = RouteParameter.Optional,
+                    search = RouteParameter.Optional
+
+                });
+
+            config.Routes.MapHttpRoute(
+                name: "AllPlayers",
+                routeTemplate: "api/{controller}",
+                defaults: new {id = RouteParameter.Optional}
+
             );
         }
     }

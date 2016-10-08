@@ -83,6 +83,7 @@
   <ItemGroup>
     <Content Include="App_Data\Players.txt" />
     <Content Include="Global.asax" />
+    <Content Include="Players.html" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

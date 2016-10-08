@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Player App</title>
+</head>
+<body>
+
+    <div>
+        <h2>All Players</h2>
+        <ul id="players" />
+    </div>
+    <div>
+        <h2>Search or Delete</h2>
+        <select name="fieldChoice" id="fc">
+            <option value="Name" id="Name">Name</option>
+            <option value="Registration_ID" id="registration">Registration ID</option>
+        </select>
+        <input type="text" id="playerId" size="5"/>
+        <input type="button" value="Search" onclick="find();"/>
+        <input type="button" value="Delete" onclick="del();"/>
+        <p id="player"/>
+    </div>
+<div>
+    <h2>Player Registration</h2>
+    <form>
+        <label id="regID">ID</label><input type="text" id="txtregID" name="regID"/><br>
+        <label  id="FirstName">First Name</label><input type="text" id="txtFirstname" name="Firstname" /><br>
+        <label  id="LastName">Last Name</label><input type="text" id="txtLastname" name="Lastname" /><br>
+        <label id="TeamName">Team Name</label><input type="text" id="txtTeamname" name="Teamname" /><br>
+        <label id="DOB">Date Of Birth</label><input type="text" id="txtDOB" name="DOB" /><br/>
+        <input type="button" id="post" value="Update" onclick="update();"  />
+    </form>
+</div>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script>
+    var uri = 'api/Player';
+
+    $(document).ready(function () {
+      // Send an AJAX request
+      $.getJSON(uri)
+          .done(function (data) {
+            // On success, 'data' contains a list of products.
+            $.each(data, function (key, item) {
+              // Add a list item for the product.
+              $('<li>', { text: formatItem(item) }).appendTo($('#players'));
+            });
+          });
+    });
+
+    function formatItem(item) {
+        var my_date = item.Date_of_Birth.substr(0,10);
+        return item.Registration_ID + ':' + item.Player_name + ':' + item.Team_name + ':' + my_date;
+    }
+
+    function find() {
+        var id = $('#playerId').val();
+        var selfield = $('#fc').val();
+        $.getJSON(uri + '/' + selfield + '/' + id)
+            .done(function (data) {
+                $('#player').html("");
+                $.each(data, function (key, item) {
+                    // Add a list item for the product.
+                    $('<li>', { text: formatItem(item) }).appendTo($('#player'));
+                });
+            })
+        .fail(function (jqXhr, textStatus, err) {
+          $('#player').text('Error: ' + err);
+        });
+    }
+
+    function del() {
+        var id = $('#playerId').val();
+        var selfield = $('#fc').val();
+        $.ajax({
+            type: 'DELETE',
+            url: uri + '/' + selfield + '/' + id,
+            success: function(data) {
+                // On success, 'data' contains a list of products.
+                $('#players').html("");
+                $.each(data,
+                    function(key, item) {
+                        // Add a list item for the product.
+                        $('<li>', { text: formatItem(item) }).appendTo($('#players'));
+                    }
+                )
+            },
+            error: function(jqXhr, textStatus, err) {
+                $('#player').text('Error: ' + err);
+            }
+        });
+    }
+
+    function update() {
+            var player = {
+                "Player": {
+                    "Registration_ID": $('#txtregID'.val()),
+                    "Player_name": $('#txtFirstname'.val()) + ' ' + $('#txtLastname'.val()),
+                    "Team_name": $('#txtTeamname'.val()),
+                    "Date_of_Birth": $('#txtDOB'.val())
+                }
+            };
+            $('#player').text('player: ' + player);
+            var myPlayer = JSON.parse(player);
+            $.ajax({
+                type: 'POST',
+                url: uri,
+                data: myPlayer,
+                success: function (data) {
+                    // On success, 'data' contains a list of products.
+                    $('#players').html("");
+                    $.each(data,
+                        function(key, item) {
+                            // Add a list item for the product.
+                            $('<li>', { text: formatItem(item) }).appendTo($('#players'));
+                        }
+                    );
+                },
+                error: function (jqXhr, textStatus, err) {
+                    $('#player').text('Error: ' + err);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
