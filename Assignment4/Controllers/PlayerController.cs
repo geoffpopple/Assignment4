@@ -108,7 +108,10 @@ namespace Assignment4.Controllers
             {
                 _players.Add((plr));
             }
-            return Ok();
+            //candidate to move to event listner
+            ClearFileContents(PlayersFile);
+            WriteListToFile(_players, PlayersFile);
+            return Ok(_players);
         }
 
         private static bool ClearFileContents(string filename)

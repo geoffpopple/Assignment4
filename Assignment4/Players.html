@@ -28,7 +28,7 @@
         <label  id="LastName">Last Name</label><input type="text" id="txtLastname" name="Lastname" /><br>
         <label id="TeamName">Team Name</label><input type="text" id="txtTeamname" name="Teamname" /><br>
         <label id="DOB">Date Of Birth</label><input type="text" id="txtDOB" name="DOB" /><br/>
-        <input type="button" id="post" value="Update" onclick="update();"  />
+        <input type="button" id="post" value="update" onclick="myupdate();"  />
     </form>
 </div>
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
@@ -90,35 +90,34 @@
         });
     }
 
-    function update() {
-            var player = {
-                "Player": {
-                    "Registration_ID": $('#txtregID'.val()),
-                    "Player_name": $('#txtFirstname'.val()) + ' ' + $('#txtLastname'.val()),
-                    "Team_name": $('#txtTeamname'.val()),
-                    "Date_of_Birth": $('#txtDOB'.val())
-                }
-            };
-            $('#player').text('player: ' + player);
-            var myPlayer = JSON.parse(player);
-            $.ajax({
-                type: 'POST',
-                url: uri,
-                data: myPlayer,
-                success: function (data) {
-                    // On success, 'data' contains a list of products.
-                    $('#players').html("");
-                    $.each(data,
-                        function(key, item) {
-                            // Add a list item for the product.
-                            $('<li>', { text: formatItem(item) }).appendTo($('#players'));
-                        }
-                    );
-                },
-                error: function (jqXhr, textStatus, err) {
-                    $('#player').text('Error: ' + err);
-                }
-            });
+    function myupdate() {
+        
+        var aplayer = {
+            Registration_ID: $("#txtregID").val(),
+            Player_name: $("#txtFirstname").val() + " " + $("#txtLastname").val(),
+            Team_name: $("#txtTeamname").val(),
+            Date_of_Birth: $("#txtDOB").val()
+        };
+  
+        $.ajax({
+            type: 'POST',
+            url: uri,
+            data: JSON.stringify(aplayer),
+            contentType: "application/json",
+            success: function (data) {
+                // On success, 'data' contains a list of products.
+                $('#players').html("");
+                $.each(data,
+                    function (key, item) {
+                        // Add a list item for the product.
+                       $('<li>', { text: formatItem(item) }).appendTo($('#players'));
+                    }
+                )
+            },
+            error: function (jqXhr, textStatus, err) {
+               $('#player').text('Error: ' + err);
+            }
+    });
         }
     </script>
 </body>
