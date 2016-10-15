@@ -2,12 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Player App</title>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.15.1/jquery.validate.min.js"></script>
 </head>
 <body>
 
     <div>
         <h2>All Players</h2>
-        <ul id="players" />
+        <ul id="players"></ul> 
     </div>
     <div>
         <h2>Search or Delete</h2>
@@ -22,19 +24,21 @@
     </div>
 <div>
     <h2>Player Registration</h2>
-    <form>
+    <form id="fields">
         <label id="regID">ID</label><input type="text" id="txtregID" name="regID"/><br>
-        <label  id="FirstName">First Name</label><input type="text" id="txtFirstname" name="Firstname" /><br>
+        <label  id="FirstName">First Name</label><input type="text" id="txtFirstname" name="Firstname" required /><br>
         <label  id="LastName">Last Name</label><input type="text" id="txtLastname" name="Lastname" /><br>
         <label id="TeamName">Team Name</label><input type="text" id="txtTeamname" name="Teamname" /><br>
-        <label id="DOB">Date Of Birth</label><input type="text" id="txtDOB" name="DOB" /><br/>
-        <input type="button" id="post" value="update" onclick="myupdate();"  />
+        <label id="DOB">Date Of Birth</label><input type="text" id="txtDOB" name="DOB" class="USDate" /><br/>
+        <input type="button" id="post" value="update" onclick="myupdate();"/>
     </form>
 </div>
-    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
-    <script>
+
+<script>
+    //The Base URI as a Const
     var uri = 'api/Player';
 
+    //Function called on load - Returns all players
     $(document).ready(function () {
       // Send an AJAX request
       $.getJSON(uri)
@@ -47,10 +51,52 @@
           });
     });
 
-    function formatItem(item) {
-        var my_date = item.Date_of_Birth.substr(0,10);
-        return item.Registration_ID + ':' + item.Player_name + ':' + item.Team_name + ':' + my_date;
+    //Validate the input of the form
+    //No Nulls; Date is in the Form YYYY-MM-DD
+    //Need to use JQUERY Validator extension
+    $('#fields').validate({
+        rules: {
+            DOB: {
+                required: true,
+                date: true
+            },
+           Teamname: {
+                required: true
+            }
+            ,
+           Firstname: {
+                required: true
+            },        
+            Lastname: {
+                required: true
+            },
+            regID: {
+                required: true
+            }
+        }
+    });
+
+   $.validator.addMethod(
+    "USDate",
+    function (value, element) {
+        //Date is in the Form YYYY-MM-DD
+        var expr = /^\d{4}-\d{1,2}-\d{1,2}$/;
+
+        return (this.optional(element) && value === "") || expr.test(value);
     }
+);
+    //adds the validator
+   $.validator.addMethod("USDate", $.validator.methods.required);
+
+    //Formats the data
+    function formatItem(item) {
+        var myDate = item.Date_of_Birth.substr(0,10);
+        return item.Registration_ID + ':' + item.Player_name + ':' + item.Team_name + ':' + myDate;
+    }
+
+    //finds an individual player by registrationID or Name
+    //URI for name is api/Player/Name/id METHOD=GET
+    //URI for name is api/Player/Registration_ID/id METHOD=GET
 
     function find() {
         var id = $('#playerId').val();
@@ -68,57 +114,67 @@
         });
     }
 
+    //finds an individual player by registrationID or Name
+    //URI for name is api/Player/Name/id METHOD=DELETE
+    //URI for name is api/Player/Registration_ID/id METHOD=DELETE
     function del() {
-        var id = $('#playerId').val();
-        var selfield = $('#fc').val();
-        $.ajax({
-            type: 'DELETE',
-            url: uri + '/' + selfield + '/' + id,
-            success: function(data) {
-                // On success, 'data' contains a list of products.
-                $('#players').html("");
-                $.each(data,
-                    function(key, item) {
-                        // Add a list item for the product.
-                        $('<li>', { text: formatItem(item) }).appendTo($('#players'));
-                    }
-                )
-            },
-            error: function(jqXhr, textStatus, err) {
-                $('#player').text('Error: ' + err);
-            }
-        });
+            var id = $('#playerId').val();
+            var selfield = $('#fc').val();
+            $.ajax({
+                type: 'DELETE',
+                url: uri + '/' + selfield + '/' + id,
+                success: function(data) {
+                    // On success, 'data' contains a list of products.
+                    $('#players').html("");
+                    $.each(data,
+                        function(key, item) {
+                            // Add a list item for the product.
+                            $('<li>', { text: formatItem(item) }).appendTo($('#players'));
+                        }
+                    );
+                },
+                error: function(jqXhr, textStatus, err) {
+                    $('#player').text('Error: ' + err);
+                }
+            });
     }
 
+    //POST MEthod - Will update the data if it exists or insert if it doesnt
+    //Need to use the stringify method so we can get the filds how we want them
+    //URI for name is api/Player METHOD=POST
     function myupdate() {
-        
-        var aplayer = {
-            Registration_ID: $("#txtregID").val(),
-            Player_name: $("#txtFirstname").val() + " " + $("#txtLastname").val(),
-            Team_name: $("#txtTeamname").val(),
-            Date_of_Birth: $("#txtDOB").val()
-        };
-  
-        $.ajax({
-            type: 'POST',
-            url: uri,
-            data: JSON.stringify(aplayer),
-            contentType: "application/json",
-            success: function (data) {
-                // On success, 'data' contains a list of products.
-                $('#players').html("");
-                $.each(data,
-                    function (key, item) {
-                        // Add a list item for the product.
-                       $('<li>', { text: formatItem(item) }).appendTo($('#players'));
-                    }
-                )
-            },
-            error: function (jqXhr, textStatus, err) {
-               $('#player').text('Error: ' + err);
-            }
-    });
+        if ($('#fields').valid() === true) {
+
+            var aplayer = {
+                Registration_ID: $("#txtregID").val(),
+                Player_name: $("#txtFirstname").val() + " " + $("#txtLastname").val(),
+                Team_name: $("#txtTeamname").val(),
+                Date_of_Birth: $("#txtDOB").val()
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: uri,
+                data: JSON.stringify(aplayer),
+                contentType: "application/json",
+                success: function(data) {
+                    // On success, 'data' contains a list of products.
+                    $('#players').html("");
+                    $.each(data,
+                        function(key, item) {
+                            // Add a list item for the product.
+                            $('<li>', { text: formatItem(item) }).appendTo($('#players'));
+                        }
+                    );
+                },
+                error: function(jqXhr, textStatus, err) {
+                    $('#player').text('Error: ' + err);
+                }
+            });
         }
+        return false;
+    }
+
     </script>
 </body>
 </html>
